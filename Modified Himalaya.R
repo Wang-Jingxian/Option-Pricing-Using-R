@@ -150,3 +150,5 @@ b <- ggplot(as.data.frame(f), aes(x = f))
 b + geom_histogram(bins = 30, color = "black", fill = "gray") +
   geom_vline(aes(xintercept = mean(f)),
              linetype = "dashed", size = 0.6)
+
+
