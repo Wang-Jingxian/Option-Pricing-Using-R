@@ -23,7 +23,6 @@ T1 <- 1             # Time until 1st record of best performing stock (in years)
 T2 <- 2             # Time until expiration, also the 2nd record (in years)
 r <- 0.02904        # risk-free rate (U.S. 10 Year Treasury)
 K <- 1              # Strike for return: 100%
-participate <- 1.2  # Participation rate
 principal <- 1000   # Principal
 
 m <- T1 * 252             # Number of subintervals
@@ -137,18 +136,38 @@ for (j in 1:d) {   # d times simulation
   ################################################################
   a[j] <- (maxi[j] + maxi2[j])/2 
   
-  # f[j] is the discounted payoff for each simulation
-  f[j] <- participate * max(a[j] - K, 0) * exp(-r * T2)
+  # f[j] is the option payoff for each simulation
+  f[j] <- max(a[j] - K, 0) * principal
 }
 
-cat("Option Price Estimate:", round(mean(f) * principal, 4), "\n")
-cat("Initial Payout:", round(mean(f) * principal + principal, 4), "\n")
+Option_P = mean(f) * exp(-r * T2)  #Discounted Option Payoff
+Bond_P = principal * exp(-r * T2)  #PV of Bond
+participation = (1000 - principal * exp(-r * T2))/Option_P  #Participation Rate
+
+#The Option price is the discounted average payoff
+cat("Discounted Option Payoff:", round(Option_P, 4), "\n")
 cat("Standard Error:", round(sd(f) / sqrt(d), 4), "\n")
+cat("Participation Rate:", round(participation, 4))
+cat("Initial Investment:", round(mean(f) * participation 
+                                 * exp(-r * T2) + Bond_P, 4), "\n")
+cat("Option Price:", Option_P * participation)
+
+q <- rep(0, d)  # Option payoff with participation rate
+for(j in 1:d){
+  q[j] = f[j] * participation
+}
 
 library("ggplot2") #Plot the discounted payoff as histogram
 b <- ggplot(as.data.frame(f), aes(x = f)) 
 b + geom_histogram(bins = 30, color = "black", fill = "gray") +
   geom_vline(aes(xintercept = mean(f)),
              linetype = "dashed", size = 0.6)
+
+library(psych)
+describe(q)
+summary(q)
+
+
+
 
 
